@@ -1,0 +1,27 @@
+{
+  "name": "buzzfyrejs",
+  "description": "LOL at cats",
+  "author": "Livefyre <support@livefyre.com>",
+  "version": "0.0.1",
+  "devDependencies": {
+    "bower": "0.9.2",
+    "http-server": "*",
+    "requirejs": "*",
+    "jshint": "~1.1.0",
+    "jsdoc": "git://github.com/jsdoc3/jsdoc.git",
+    "less": "1.4.0"
+  },
+  "scripts": {
+    "postinstall": "./node_modules/bower/bin/bower install",
+    "start": "./node_modules/http-server/bin/http-server .",
+    "build": "./node_modules/requirejs/bin/r.js -o ./build-prod.js",
+    "build-dev": "./node_modules/requirejs/bin/r.js -o ./build-dev.js",
+    "hint": "./node_modules/jshint/bin/jshint src; echo",
+    "hint-jenkins": "./node_modules/jshint/bin/jshint --reporter=jslint src/*.js > lint.log; echo",
+    "test": "node tests/runner.js",
+    "test-jenkins": "node tests/runner.js > tests.log",
+    "build-version": "node tools/build_version.js",
+    "jsdoc": "rm -rf docs/api && ./node_modules/jsdoc/jsdoc -c tools/jsdoc.conf.json",
+    "lessc": "./node_modules/less/bin/lessc -x ./src/less/style.less ./src/css/curator-style.css"
+  }
+}
