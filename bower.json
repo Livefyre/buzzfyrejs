@@ -2,7 +2,7 @@
   "name": "buzzfyrejs",
   "version": "0.0.0",
   "main": [
-    "./src/main.js"
+    "./src/javascript/main.js"
   ],
   "dependencies": {
     "streamhub-sdk": "git://github.com/gobengo/streamhub-sdk.git",

@@ -5,7 +5,7 @@ require.config({
   },
   packages: [{
      name: "buzzfyrejs",
-     location: "./src"
+     location: "./src/javascript"
   },{
      name: "streamhub-sdk",
      location: "lib/streamhub-sdk/src/"
