@@ -19,10 +19,16 @@ define([
         this.content_ = {};
 
         /**
-         * Whether there is a request that is currently processing.
+         * Whether there is a delete request that is currently processing.
          * @type {boolean}
          */
-        this.isProcessing_ = false;
+        this.isProcessingDelete_ = false;
+
+        /**
+         * Whether there is a post request that is currently processing.
+         * @type {boolean}
+         */
+        this.isProcessingPost_ = false;
 
         /**
          * The config options that will be used later. This is mainly for the
@@ -147,8 +153,8 @@ define([
             this.messageId = messageId;
             // Don't want to re-increment if there is a processing request. This
             // has already happened. This will only happen for the current user.
-            if (this.isProcessing_) {
-                this.isProcessing_ = false;
+            if (this.isProcessingPost_) {
+                this.isProcessingPost_ = false;
                 return;
             }
         }
@@ -183,6 +189,30 @@ define([
     };
 
     /**
+     * Delete a rating. This sets up the data to send to the client.
+     * @param {string} dimension The dimension being removed.
+     * @param {function()} callback Function to call once delete is complete.
+     */
+    buzzfyrejs.prototype.deleteRating_ = function(dimension, callback) {
+        var opts = {
+            network: this.opts_.environment,
+            collectionId: this.opts_.collectionId,
+            lftoken: this.userToken_,
+            messageId: this.messageId,
+            siteId: this.opts_.siteId
+        };
+        var callback = $.proxy(this.handleDeleteSuccess_, this, callback);
+        var errback = $.proxy(this.handleDeleteFailure_, this);
+        ReviewClient.deleteReview(opts, callback, errback);
+        this.isProcessingDelete_ = true;
+        // Assume that it's going to work. The success/error handlers will
+        // deal with the states properly.
+        var $btnEl = $('.isAuthor');
+        $btnEl.removeClass();
+        this.decrementCount_($btnEl.attr('data-dimension'));
+    };
+
+    /**
      * Increments the count for the specified dimension.
      * @param {string} dimension The dimension to increment.
      * @private
@@ -204,59 +234,28 @@ define([
         var dimension = $btnEl.attr('data-dimension');
         // If the button is selected, that means we should go ahead and delete
         // the rating.
-        var doDelete = $btnEl.hasClass(buzzfyrejs.CLASSES.IS_AUTHOR);
-        // The options that will be sent to the post or delete functions.
-        var opts = {
-            network: this.opts_.environment,
-            collectionId: this.opts_.collectionId,
-            lftoken: this.userToken_
-        };
+        var isSelected = $btnEl.hasClass(buzzfyrejs.CLASSES.IS_AUTHOR);
         // If the button is selected and there is a messageId for the current
         // user, we can delete the rating. We want to make sure that both are
         // true in case we're somehow in a weird state.
-        if (doDelete && this.messageId) {
-            opts.messageId = this.messageId;
-            opts.siteId = this.opts_.siteId;
-            var callback = $.proxy(this.handleDeleteSuccess_, this);
-            var errback = $.proxy(this.handleDeleteFailure_, this);
-            ReviewClient.deleteReview(opts, callback, errback);
-            // Assume that it's going to work. The success/error handlers will
-            // deal with the states properly.
-            $btnEl.removeClass();
-            this.decrementCount_(dimension);
-            this.isProcessing_ = true;
-            return;
-        }
-        // If there is a messageId but the user clicked on a different dimension,
-        // we don't allow multiple selections just yet. Show a message in the
-        // console and leave.
         if (this.messageId) {
-            console.log('cannot buzz more than 1');
+            var postOnSuccess = !isSelected ?
+                $.proxy(this.postRating_, this, dimension) :
+                function() {};
+            this.deleteRating_(dimension, postOnSuccess);
             return;
         }
-
-        var ratings = {};
-        // Pre-load the ratings object with empty values for each of the
-        // possible dimensions.
-        $.each(this.ratingDimensions_, function(idx, dimension) {
-            ratings[dimension] = -1;
-        });
-        // Get the rating that was clicked.
-        ratings[dimension] = 100;
-
-        opts.ratings = ratings;
-        var callback = $.proxy(this.handlePostSuccess_, this);
-        var errback = $.proxy(this.handlePostFailure_, this);
-        ReviewClient.postReview(opts, callback, errback);
-        // Assume that it's going to work. The success/error handlers will
-        // deal with the states properly.
-        $btnEl.addClass(buzzfyrejs.CLASSES.IS_AUTHOR);
-        this.incrementCount_(dimension);
-        this.isProcessing_ = true;
+        this.postRating_(dimension);
     };
 
-    buzzfyrejs.prototype.handleDeleteSuccess_ = function(resp) {
+    /**
+     * Handle the delete success response. Trigger a callback that was provided.
+     * @param {function()} callback
+     * @param {Object} resp
+     */
+    buzzfyrejs.prototype.handleDeleteSuccess_ = function(callback, resp) {
         this.removeRating_(this.messageId);
+        callback();
     };
 
     buzzfyrejs.prototype.handleDeleteFailure_ = function() {
@@ -277,6 +276,37 @@ define([
 
     buzzfyrejs.prototype.handlePostFailure_ = function() {
         // Do we want to remove the ratings here?
+    };
+
+    /**
+     * Post a rating. This sets up the data to send to the client.
+     * @param {string} dimension The selected dimension.
+     */
+    buzzfyrejs.prototype.postRating_ = function(dimension) {
+        var ratings = {};
+        // Pre-load the ratings object with empty values for each of the
+        // possible dimensions.
+        $.each(this.ratingDimensions_, function(idx, dimension) {
+            ratings[dimension] = -1;
+        });
+        // Get the rating that was clicked.
+        ratings[dimension] = 100;
+
+        var opts = {
+            network: this.opts_.environment,
+            collectionId: this.opts_.collectionId,
+            lftoken: this.userToken_,
+            ratings: ratings
+        };
+        var callback = $.proxy(this.handlePostSuccess_, this);
+        var errback = $.proxy(this.handlePostFailure_, this);
+        ReviewClient.postReview(opts, callback, errback);
+        this.isProcessingPost_ = true;
+        // Assume that it's going to work. The success/error handlers will
+        // deal with the states properly.
+        var $btnEl = $('button[data-dimension="' + dimension + '"]');
+        $btnEl.addClass(buzzfyrejs.CLASSES.IS_AUTHOR);
+        this.incrementCount_(dimension);
     };
 
     /**
@@ -346,8 +376,8 @@ define([
             this.messageId = null;
             // Don't want to re-increment if there is a processing request. This
             // has already happened. This will only happen for the current user.
-            if (this.isProcessing_) {
-                this.isProcessing_ = false;
+            if (this.isProcessingDelete_) {
+                this.isProcessingDelete_ = false;
                 return;
             }
         }
