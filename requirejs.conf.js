@@ -1,7 +1,8 @@
 require.config({
   baseUrl: "/",
   paths: {
-    jquery: 'lib/jquery/jquery'
+    jquery: 'lib/jquery/jquery',
+    base64: 'lib/base64/base64'
   },
   packages: [{
      name: "buzzfyrejs",
