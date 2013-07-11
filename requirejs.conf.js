@@ -1,5 +1,5 @@
 require.config({
-  baseUrl: "/",
+  baseUrl: "/buzzfyrejs/",
   paths: {
     jquery: 'lib/jquery/jquery',
     base64: 'lib/base64/base64'
