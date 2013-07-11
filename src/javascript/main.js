@@ -258,10 +258,17 @@ define([
         callback();
     };
 
+    /**
+     * Handle the delete failure response.
+     */
     buzzfyrejs.prototype.handleDeleteFailure_ = function() {
         // Do we want to add the ratings back here?
     };
 
+    /**
+     * Handle the post success response.
+     * @param {Object} resp
+     */
     buzzfyrejs.prototype.handlePostSuccess_ = function(resp) {
         var content = resp.data.messages[0].content;
         var messageId = content.id;
@@ -274,6 +281,9 @@ define([
         this.addRating_(messageId, rating, true);
     };
 
+    /**
+     * Handle the post failure response.
+     */
     buzzfyrejs.prototype.handlePostFailure_ = function() {
         // Do we want to remove the ratings here?
     };
