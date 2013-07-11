@@ -1,0 +1,38 @@
+#buzzfyre ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+#buzzfyre ul li {
+    float: left;
+}
+#buzzfyre ul li button {
+    background-color: #F5FF00;
+    border: 1px solid #ccc;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    -o-border-radius: 3px;
+    border-radius: 3px;
+    -webkit-box-shadow: 1px 1px 0 0 #666;
+    -moz-box-shadow: 1px 1px 0 0 #666;
+    -ms-box-shadow: 1px 1px 0 0 #666;
+    -o-box-shadow: 1px 1px 0 0 #666;
+    box-shadow: 1px 1px 0 0 #666;
+    cursor: pointer;
+    display: block;
+    font-weight: bold;
+    padding: 6px 10px;
+    text-transform: uppercase;
+}
+#buzzfyre ul li button.isAuthor {
+    background-color: #f00;
+}
+#buzzfyre ul li button.loading {
+    background: url(../images/ajax-loader.gif) top center no-repeat;
+    color: transparent;
+}
+#buzzfyre ul li span {
+    display: block;
+    text-align: center;
+}
